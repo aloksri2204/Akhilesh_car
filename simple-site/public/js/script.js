@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Form submission handling with AJAX
+  // Form submission handling for GitHub Pages (static site)
   const bookingForm = document.getElementById('booking-form');
   const contactForm = document.getElementById('contact-form');
   const successModal = document.getElementById('success-message');
@@ -61,26 +61,39 @@ document.addEventListener('DOMContentLoaded', function() {
     return serialized;
   }
 
-  // Helper function for AJAX requests
-  function sendFormData(url, data, callback) {
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Success:', data);
-      callback(null, data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      callback(error);
-    });
+  // Function to format form data for email
+  function formatFormDataForEmail(formData, formType) {
+    let subject = '';
+    let body = '';
+    
+    if (formType === 'booking') {
+      subject = 'New Booking Request from ' + formData.name;
+      body = 'Booking Details:%0D%0A';
+      body += '-----------------%0D%0A';
+      body += 'Name: ' + formData.name + '%0D%0A';
+      body += 'Email: ' + formData.email + '%0D%0A';
+      body += 'Phone: ' + formData.phone + '%0D%0A';
+      body += 'Date: ' + formData.date + '%0D%0A';
+      body += 'Time: ' + formData.time + '%0D%0A';
+      body += 'Service Type: ' + formData['service-type'] + '%0D%0A';
+      body += 'Pickup Location: ' + formData.pickup + '%0D%0A';
+      body += 'Destination: ' + formData.dropoff + '%0D%0A';
+      body += 'Passengers: ' + formData.passengers + '%0D%0A';
+      body += 'Notes: ' + (formData.notes || 'None') + '%0D%0A';
+    } else if (formType === 'contact') {
+      subject = 'New Contact Message from ' + formData.name;
+      body = 'Contact Message:%0D%0A';
+      body += '---------------%0D%0A';
+      body += 'Name: ' + formData.name + '%0D%0A';
+      body += 'Email: ' + formData.email + '%0D%0A';
+      body += 'Phone: ' + (formData.phone || 'Not provided') + '%0D%0A';
+      body += 'Message: ' + formData.message + '%0D%0A';
+    }
+    
+    return { subject, body };
   }
 
+  // Handle the booking form submission
   if (bookingForm) {
     bookingForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -88,22 +101,27 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = serializeForm(bookingForm);
       console.log('Booking form submitted', formData);
       
-      // AJAX request
-      sendFormData('/api/booking', formData, function(error, data) {
-        if (error) {
-          alert('There was an error submitting your booking. Please try again later.');
-          return;
-        }
-        
-        // Display success message
-        successModal.style.display = 'block';
-        
-        // Clear form
-        bookingForm.reset();
-      });
+      // Store data in localStorage for demo purposes
+      localStorage.setItem('lastBooking', JSON.stringify(formData));
+      
+      // Option 1: Open email client (fallback for static site)
+      const { subject, body } = formatFormDataForEmail(formData, 'booking');
+      const mailtoLink = `mailto:booking@akhileshcab.com?subject=${subject}&body=${body}`;
+      
+      // Show confirmation before opening email client
+      if (confirm('Since this is a static website hosted on GitHub Pages, we will open your email client to send this booking request. Click OK to proceed.')) {
+        window.location.href = mailtoLink;
+      }
+      
+      // Display success message
+      successModal.style.display = 'block';
+      
+      // Clear form
+      bookingForm.reset();
     });
   }
 
+  // Handle the contact form submission
   if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -111,19 +129,23 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = serializeForm(contactForm);
       console.log('Contact form submitted', formData);
       
-      // AJAX request
-      sendFormData('/api/contact', formData, function(error, data) {
-        if (error) {
-          alert('There was an error submitting your message. Please try again later.');
-          return;
-        }
-        
-        // Display success message
-        successModal.style.display = 'block';
-        
-        // Clear form
-        contactForm.reset();
-      });
+      // Store data in localStorage for demo purposes
+      localStorage.setItem('lastContact', JSON.stringify(formData));
+      
+      // Option 1: Open email client (fallback for static site)
+      const { subject, body } = formatFormDataForEmail(formData, 'contact');
+      const mailtoLink = `mailto:contact@akhileshcab.com?subject=${subject}&body=${body}`;
+      
+      // Show confirmation before opening email client
+      if (confirm('Since this is a static website hosted on GitHub Pages, we will open your email client to send this message. Click OK to proceed.')) {
+        window.location.href = mailtoLink;
+      }
+      
+      // Display success message
+      successModal.style.display = 'block';
+      
+      // Clear form
+      contactForm.reset();
     });
   }
 
